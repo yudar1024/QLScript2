@@ -1,6 +1,8 @@
 # QLScript_New
-本仓库不支持qinglong 2.10.2之后的qinglong直接拉库，以后支不支持，难说，不是不想，而是改成这样没法支持,升级了的自己想方法解决.我停留在2.9.9了.
-青龙拉库命令:
+
+本库的一对一通知和Ark(原Nvjdc)登录产生的备注格式互相兼容，且只有使用Ark(原Nvjdc)登录的才会在资产查询中显示预计过期时间.
+
+2.10.3之前版本青龙拉库命令:
 
 	不包含sendNotify:
 
@@ -10,6 +12,17 @@
 
 	ql repo https://github.com/ccwav/QLScript2.git "jd_" "NoUsed" "ql|sendNotify|utils"
 
+
+2.10.3之后版本青龙拉库命令:
+
+	不包含sendNotify:
+
+	ql repo https://github.com/ccwav/QLScript2.git "jd_" "NoUsed" "ql|utils|USER_AGENTS|jdCookie|JS_USER_AGENTS"
+
+	包含sendNotify:
+
+	ql repo https://github.com/ccwav/QLScript2.git "jd_" "NoUsed" "ql|sendNotify|utils|USER_AGENTS|jdCookie|JS_USER_AGENTS"
+	
 频道:
 
 	https://t.me/ccwav
@@ -36,6 +49,8 @@
 京东资产变动 + 白嫖榜 + 京东月资产变动,注意事项: 
 
 	如果你遇到TG Bark报错，那是因为报文过长，请使用分段通知功能.
+	
+	CKName_cache.json 跟 CK_WxPusherUid.json 现在写死路径到ql/scripts
 
 变量列表:
 
@@ -48,26 +63,41 @@
 	    分组通知的通知标题为 脚本名+"#"+分组数值
 	    主要用于搭配通知脚本的分组通知使用.
     
-    (3) BEANCHANGE_ENABLEMONTH
+    (3) BEANCHANGE_ENABLEMONTH (此功能已永久停用)
         每月1号17点后如果执行资产查询，开启京东月资产变动的统计和推送.	
 	    拆分通知和分组通知的变量都可以兼容.	
 	    标题按照分组分别为 京东月资产变动 京东月资产变动#2 京东月资产变动#3 京东月资产变动#4	
 	    开启 :  export BEANCHANGE_ENABLEMONTH="true"  	
     
     (4) BEANCHANGE_ALLNOTIFY
-		设置推送置顶公告，&表示换行，公告会出现在资产通知中(包括一对一).
-		例子 :  export BEANCHANGE_ALLNOTIFY="ccwav 虽然头发块掉光了&可是还是很帅啊...&&不说了，我去哭会...."  
-		显示:
+		设置推送置顶公告，公告会出现在资产通知中(包括一对一),支持html语法.
+		例子 :  export BEANCHANGE_ALLNOTIFY='ccwav 虽然头发块掉光了
+		可是还是很帅啊...
+		
+		不说了，我去哭会....'  
+		
+		显示效果:
 		
 		【✨✨✨✨公告✨✨✨✨】
 		 ccwav 虽然头发块掉光了
 		 可是还是很帅啊...
 		 
 		 不说了，我去哭会.... 
-		 
+	
+	(5) BEANCHANGE_ExJxBeans
+		当设定BEANCHANGE_ExJxBeans="true"且时间在17点之后，会自动将临期京豆兑换成喜豆续命.
+
+	(6) BEANCHANGE_DISABLELIST
+		关闭查询列表中的项目,自行删减.(攻略显示就是之前的提醒)
+		export BEANCHANGE_DISABLELIST="汪汪乐园&京东赚赚&京东秒杀&东东农场&极速金币&京喜牧场&京喜工厂&京东工厂&领现金&喜豆查询&金融养猪&东东萌宠&活动攻略"
+		
 # 4. jd_CheckCK.js (已添加支持一对一推送)
+(最新的通知脚本已经集成自动禁用失效CK，如不需要自动启用CK功能可以直接禁用此脚本.)
+
 京东CK检测,不正常的自动禁用，正常的如果是禁用状态则自动启用.配合通知脚本CK触发使用.也可以直接task.
+
 兼容jd_bean_change的BEANCHANGE_USERGP2 BEANCHANGE_USERGP3 BEANCHANGE_USERGP4变量.
+
 变量列表:
 	
 	显示正常CK:  export CHECKCK_SHOWSUCCESSCK="true"
@@ -79,12 +109,16 @@
 	分组通知的通知标题为 脚本名+"#"+分组数值
 	主要用于搭配通知脚本的分组通知使用.
   
-	2021-11-14增加CHECKCK_ALLNOTIFY设置温馨提示，&表示换行，推送时在内容末尾添加显示
+	增加CHECKCK_ALLNOTIFY设置温馨提示，推送时在内容末尾添加显示
 	一对一推送只有推送账户失效时才会添加.用法参考BEANCHANGE_ALLNOTIFY.
 	
   
 # 5. sendNotify.js
 发送通知脚本Pro.
+
+集成自动禁用失效CK功能，当NOTIFY_AUTOCHECKCK=“true”时开启,默认关闭,原理是通过捕获任务脚本发送ck失效实现，
+
+精准操作，支持一对一推送，通知标题还是以前的"京东CK检测",兼容jd_CheckCK.js的分组设定和CHECKCK_ALLNOTIFY设定.
 
 变量列表:
 
@@ -136,11 +170,13 @@
     增加pushplus.hxtrip.com的推送加接口，貌似更稳定,注意这个和PUSHPLUS不是同一家.
     
 	(13) 用 WxPusher 进行一对一推送
+	新方案;
+	填写变量 WP_APP_TOKEN_ONE,按照备注内容@@WxPusherUid的格式修改备注,例子 萌新cc@@UID_AASDADASDQWEQWDADASDADASDASDSA
+	旧方案:
 	详细教程有人写了，不知道是幸运还是不幸: https://www.kejiwanjia.com/jiaocheng/27909.html
 	填写变量 WP_APP_TOKEN_ONE,可在管理台查看: https://wxpusher.zjiecode.com/admin/main/app/appToken
-	手动建立CK_WxPusherUid.json,可以参考CKName_cache.json,只是nickName改成Uid，
-	每个用户的uid可在管理台查看: https://wxpusher.zjiecode.com/admin/main/wxuser/list
-	另外: export WP_APP_ONE_TEXTSHOWREMARK="true"，启用一对一推送标题显示备注信息，默认不启用.
+	手动建立CK_WxPusherUid.json，放通知脚本同级文件夹,可以参考CKName_cache.json,只是nickName改成Uid，
+	每个用户的uid可在管理台查看: https://wxpusher.zjiecode.com/admin/main/wxuser/list	
 	CK_WxPusherUid.json 内容(pt_pin 如果是汉字需要填写转码后的!):
 	[
 	  {
@@ -157,6 +193,10 @@
     如果此变量(&隔开)的关键字在通知内容里面存在,则屏蔽不发送通知.
     例子 :  export NOTIFY_SKIP_TEXT="忘了种植&异常"
     
+	(15) NOTIFY_AUTHOR_BLANK (tcbaby提交)
+    控制不显示推送通知的底部信息
+    例子 :  export NOTIFY_AUTHOR_BLANK="随便填只要非空即可"
+	
 # 6. jd_speed_sign_Part1~jd_speed_sign_Part3
 简单粗暴的极速版的分任务版，将总ck数除以3后平均分配成三个任务同时执行.
 
@@ -180,6 +220,19 @@
 
     export JOY_GET20WHEN16="true"  
     控制16点才触发20京豆兑换.
+	
+# 10. 互助版脚本
+互助版没有助力池，全部账号内互助，另外,东东农场跟东东萌宠要跑第二次任务才能看到正确的助力结果，请知悉(能改，但是懒，不想动它的顺序逻辑).
+
+变量列表:
+	export CC_NOHELPAFTER8="true"   控制早上9点后时段跳过不必要的互助
+
+# 11. jd_UpdateUIDtoRemark.js WxPusherUid迁移工具
+	WxPusherUid迁移工具是给使用nvjdc的用户准备的，没有使用nvjdc的请不要使用。
+	
+	适配nvjdc的备注格式为 :  备注@@账号更新时间数值@@Uid ,脚本会按照这个格式自动更新，其中账号更新时间数值用户使用 nvjdc登录更新ck的时候会自动更新，
+	
+	非nvjdc用户如果不小心使用了迁移工具，请还原env.db或手动更改备注格式为  备注@@Uid
 
 # 分组应用总结实例:
 
